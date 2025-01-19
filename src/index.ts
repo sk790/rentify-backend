@@ -14,12 +14,7 @@ const port = process.env.PORT;
 connectToDB();
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: ["*"],
-    methods: ["PUT", "GET", "POST", "DELETE"],
-  })
-);
+app.use(cors());
 app.use("/api/auth", authRouter);
 app.use("/api/product", productRoutes);
 
