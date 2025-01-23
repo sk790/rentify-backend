@@ -7,13 +7,15 @@ import { Favorite } from "../models/favorite.model.js";
 interface AuthenticatedRequest extends Request {
   user?: any;
 }
-
 //user route
 export const addProduct = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {
+    console.log("calling add product");
+    const { formData, images } = req.body;
+
     const {
       productName,
       description,
@@ -22,9 +24,9 @@ export const addProduct = async (
       category,
       period,
       price,
+      status,
       title,
-    } = req.body;
-    console.log(cordinets);
+    } = formData;
 
     const newProduct = await Product.create({
       productName,
@@ -35,9 +37,8 @@ export const addProduct = async (
       timePeriod: period,
       price,
       title,
-      images: [
-        "https://cdn.bikedekho.com/processedimages/yamaha/r15-v4/source/r15-v466e5433ef20f5.jpg",
-      ],
+      status,
+      images,
       user: req.user._id,
     });
     await User.findByIdAndUpdate(req.user._id, {
@@ -60,20 +61,34 @@ export const removeProduct = async (
   res: Response
 ): Promise<void> => {
   try {
+    console.log("calling remove product");
+
     const product = await Product.findById(req.params.productId);
     if (!product) {
       res.status(404).json({ msg: "Product not found" });
       return;
     }
-    // if (product.user._id !== req.user._id) {
-    //   res.status(400).json({ msg: "You can not delete this product" });
-    //   return;
-    // }
+
+    const favorites = await Favorite.find({ product: product._id });
+
+    if (favorites.length > 0) {
+      // Extract user IDs from the favorites
+      const userIds = favorites.map((fav) => fav.user.toString());
+
+      // Remove the product from all users' favorites
+      await User.updateMany(
+        { _id: { $in: userIds } },
+        { $pull: { favorites: product._id, products: product._id } }
+      );
+
+      // Delete all Favorite entries linked to this product
+      await Favorite.deleteMany({ product: product._id });
+    }
+
+    // Finally, delete the product
     await Product.findByIdAndDelete(product._id);
-    await User.findByIdAndUpdate(req.user._id, {
-      $pull: { products: product._id },
-    });
     res.status(200).json({ msg: "Product deleted" });
+    return;
   } catch (error) {
     res.status(500).json({ msg: "internal server error" });
     return;
@@ -146,25 +161,33 @@ export const getProductDetail = async (req: Request, res: Response) => {
 export const getAllProducts = async (req: Request, res: Response) => {
   console.log("calling get all products");
 
-  const { category, limit, userCoords, areaRange } = req.query;
+  const { category, limit, userCoords, areaRange, startIndex } = req.query;
+  console.log(req.query);
 
   try {
     let products: any;
-    if (req.query.category) {
+    let len: number = 0;
+    if (category) {
+      len = await Product.find({ category }).countDocuments();
       products = await Product.find({ category })
         .populate("user")
         .limit(parseInt(limit as string) || 10)
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(parseInt(startIndex as string) || 0);
     } else {
-      products = await Product.find().populate("user").sort({ createdAt: -1 });
+      products = await Product.find()
+        .populate("user")
+        .sort({ createdAt: -1 })
+        .limit(parseInt(limit as string) || 10);
     }
     if (!products) {
       res.status(404).json({ msg: "Product not found" });
       return;
     }
+    console.log(products, "cat");
 
     const distances: any = [];
-    if (userCoords && areaRange) {
+    if ((userCoords && areaRange) || category) {
       const parsedUserCoords = JSON.parse(userCoords as string);
       const parsedAreaRange = parseInt(areaRange as string);
 
@@ -191,6 +214,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
         msg: "Filtered products",
         products: productsByDistance,
         distances,
+        categoryProductLenght: len,
       });
       return;
     }
@@ -220,7 +244,10 @@ export const addToFavorite = async (
       res.status(404).json({ msg: "User not found" });
       return;
     }
-    const favorite = await Favorite.findOne({ product: product._id });
+    const favorite = await Favorite.findOne({
+      product: product._id,
+      user: req.user._id,
+    });
     if (favorite) {
       await user.updateOne({ $pull: { favorites: product._id } });
       await Favorite.findByIdAndDelete(favorite._id);
@@ -264,6 +291,25 @@ export const getFavoriteProducts = async (
     res
       .status(200)
       .json({ msg: "Favorite products", favoriteProducts: favorite });
+    return;
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Internal Server error", error: error.message });
+    return;
+  }
+};
+export const updateStatus = async (req: Request, res: Response) => {
+  console.log("calling update status");
+  const { status } = req.body;
+  try {
+    const product = await Product.findById(req.params.productId);
+    if (!product) {
+      res.status(404).json({ msg: "Product not found" });
+      return;
+    }
+    await product.updateOne({ status });
+    res.status(200).json({ msg: "Product status updated" });
     return;
   } catch (error) {
     res

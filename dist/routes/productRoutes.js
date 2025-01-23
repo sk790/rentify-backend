@@ -1,6 +1,6 @@
 import express from "express";
 import { verify } from "../middlewares/verify.js";
-import { addProduct, addToFavorite, getAllProducts, getFavoriteProducts, getProductDetail, removeProduct, updateProduct, } from "../controllers/product.controller.js";
+import { addProduct, addToFavorite, getAllProducts, getFavoriteProducts, getProductDetail, removeProduct, updateProduct, updateStatus, } from "../controllers/product.controller.js";
 const router = express.Router();
 //user routes
 router.route("/listing").post(verify, addProduct);
@@ -12,6 +12,7 @@ router
     .get(getProductDetail)
     .delete(verify, removeProduct)
     .put(verify, updateProduct);
+router.route("/status-update/:productId").put(verify, updateStatus);
 export default router;
 // when i hit getallproducts route then default hit getproductdetail why?
 // ChatGPT said:

@@ -13,6 +13,7 @@ export const verify = async (
 ): Promise<void> => {
   try {
     const { rentify_token } = req.cookies;
+    // console.log(rentify_token);
 
     if (!rentify_token) {
       res.status(401).json({ message: "token not valid" });

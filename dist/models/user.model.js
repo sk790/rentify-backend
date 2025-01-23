@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
     phone: { type: String, unique: true, required: true },
     address: { type: String },
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-    image: {
+    rented: [{ type: mongoose.Schema.ObjectId, ref: "Rent" }],
+    avatar: {
         type: String,
         default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s",
     },

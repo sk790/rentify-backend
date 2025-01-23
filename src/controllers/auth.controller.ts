@@ -119,6 +119,8 @@ export const getMyProfile = async (
   }
 };
 export const logOut = (req: Request, res: Response): void => {
+  console.log("calling log out");
+
   res
     .status(200)
     .clearCookie("rentify_token", {
@@ -128,4 +130,19 @@ export const logOut = (req: Request, res: Response): void => {
     })
     .json({ msg: "log out successfull" });
   return;
+};
+export const updateAvatar = async (req: AuthenticateRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ msg: "User not found" });
+      return;
+    }
+    await user.updateOne({ avatar: req.body.avatar });
+    res.status(200).json({ msg: "Profile updated successfull" });
+    return;
+  } catch (error) {
+    res.status(500).json({ msg: "INterna; server error" });
+    return;
+  }
 };

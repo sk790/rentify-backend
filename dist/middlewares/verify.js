@@ -12,6 +12,7 @@ import User from "../models/user.model.js";
 export const verify = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { rentify_token } = req.cookies;
+        // console.log(rentify_token);
         if (!rentify_token) {
             res.status(401).json({ message: "token not valid" });
             return;

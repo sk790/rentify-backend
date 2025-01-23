@@ -14,8 +14,9 @@ import { Favorite } from "../models/favorite.model.js";
 //user route
 export const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { productName, description, cordinets, address, category, period, price, title, } = req.body;
-        console.log(cordinets);
+        console.log("calling add product");
+        const { formData, images } = req.body;
+        const { productName, description, cordinets, address, category, period, price, status, title, } = formData;
         const newProduct = yield Product.create({
             productName,
             description,
@@ -25,9 +26,8 @@ export const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, functi
             timePeriod: period,
             price,
             title,
-            images: [
-                "https://cdn.bikedekho.com/processedimages/yamaha/r15-v4/source/r15-v466e5433ef20f5.jpg",
-            ],
+            status,
+            images,
             user: req.user._id,
         });
         yield User.findByIdAndUpdate(req.user._id, {
@@ -46,20 +46,25 @@ export const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 export const removeProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("calling remove product");
         const product = yield Product.findById(req.params.productId);
         if (!product) {
             res.status(404).json({ msg: "Product not found" });
             return;
         }
-        // if (product.user._id !== req.user._id) {
-        //   res.status(400).json({ msg: "You can not delete this product" });
-        //   return;
-        // }
+        const favorites = yield Favorite.find({ product: product._id });
+        if (favorites.length > 0) {
+            // Extract user IDs from the favorites
+            const userIds = favorites.map((fav) => fav.user.toString());
+            // Remove the product from all users' favorites
+            yield User.updateMany({ _id: { $in: userIds } }, { $pull: { favorites: product._id, products: product._id } });
+            // Delete all Favorite entries linked to this product
+            yield Favorite.deleteMany({ product: product._id });
+        }
+        // Finally, delete the product
         yield Product.findByIdAndDelete(product._id);
-        yield User.findByIdAndUpdate(req.user._id, {
-            $pull: { products: product._id },
-        });
         res.status(200).json({ msg: "Product deleted" });
+        return;
     }
     catch (error) {
         res.status(500).json({ msg: "internal server error" });
@@ -117,24 +122,32 @@ export const getProductDetail = (req, res) => __awaiter(void 0, void 0, void 0, 
 });
 export const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("calling get all products");
-    const { category, limit, userCoords, areaRange } = req.query;
+    const { category, limit, userCoords, areaRange, startIndex } = req.query;
+    console.log(req.query);
     try {
         let products;
-        if (req.query.category) {
+        let len = 0;
+        if (category) {
+            len = yield Product.find({ category }).countDocuments();
             products = yield Product.find({ category })
                 .populate("user")
                 .limit(parseInt(limit) || 10)
-                .sort({ createdAt: -1 });
+                .sort({ createdAt: -1 })
+                .skip(parseInt(startIndex) || 0);
         }
         else {
-            products = yield Product.find().populate("user").sort({ createdAt: -1 });
+            products = yield Product.find()
+                .populate("user")
+                .sort({ createdAt: -1 })
+                .limit(parseInt(limit) || 10);
         }
         if (!products) {
             res.status(404).json({ msg: "Product not found" });
             return;
         }
+        console.log(products, "cat");
         const distances = [];
-        if (userCoords && areaRange) {
+        if ((userCoords && areaRange) || category) {
             const parsedUserCoords = JSON.parse(userCoords);
             const parsedAreaRange = parseInt(areaRange);
             // Calculate distances and filter products
@@ -155,6 +168,7 @@ export const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 msg: "Filtered products",
                 products: productsByDistance,
                 distances,
+                categoryProductLenght: len,
             });
             return;
         }
@@ -180,7 +194,10 @@ export const addToFavorite = (req, res) => __awaiter(void 0, void 0, void 0, fun
             res.status(404).json({ msg: "User not found" });
             return;
         }
-        const favorite = yield Favorite.findOne({ product: product._id });
+        const favorite = yield Favorite.findOne({
+            product: product._id,
+            user: req.user._id,
+        });
         if (favorite) {
             yield user.updateOne({ $pull: { favorites: product._id } });
             yield Favorite.findByIdAndDelete(favorite._id);
@@ -218,6 +235,26 @@ export const getFavoriteProducts = (req, res) => __awaiter(void 0, void 0, void 
         res
             .status(200)
             .json({ msg: "Favorite products", favoriteProducts: favorite });
+        return;
+    }
+    catch (error) {
+        res
+            .status(500)
+            .json({ msg: "Internal Server error", error: error.message });
+        return;
+    }
+});
+export const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("calling update status");
+    const { status } = req.body;
+    try {
+        const product = yield Product.findById(req.params.productId);
+        if (!product) {
+            res.status(404).json({ msg: "Product not found" });
+            return;
+        }
+        yield product.updateOne({ status });
+        res.status(200).json({ msg: "Product status updated" });
         return;
     }
     catch (error) {

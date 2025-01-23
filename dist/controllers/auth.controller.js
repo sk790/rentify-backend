@@ -106,6 +106,7 @@ export const getMyProfile = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 export const logOut = (req, res) => {
+    console.log("calling log out");
     res
         .status(200)
         .clearCookie("rentify_token", {
@@ -116,3 +117,19 @@ export const logOut = (req, res) => {
         .json({ msg: "log out successfull" });
     return;
 };
+export const updateAvatar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield User.findById(req.user._id);
+        if (!user) {
+            res.status(404).json({ msg: "User not found" });
+            return;
+        }
+        yield user.updateOne({ avatar: req.body.avatar });
+        res.status(200).json({ msg: "Profile updated successfull" });
+        return;
+    }
+    catch (error) {
+        res.status(500).json({ msg: "INterna; server error" });
+        return;
+    }
+});

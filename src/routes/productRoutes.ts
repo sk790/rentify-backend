@@ -8,6 +8,7 @@ import {
   getProductDetail,
   removeProduct,
   updateProduct,
+  updateStatus,
 } from "../controllers/product.controller.js";
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router
   .get(getProductDetail)
   .delete(verify, removeProduct)
   .put(verify, updateProduct);
+router.route("/status-update/:productId").put(verify, updateStatus);
 
 export default router;
 
