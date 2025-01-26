@@ -12,7 +12,7 @@ export const toggleRent = async (req: AuthenticatedRequest, res: Response) => {
       res.status(404).json({ msg: "Product not found" });
       return;
     }
-    const existInRent = await Rent.findById(product._id);
+    const existInRent = await Rent.find({ product: product._id });
     if (existInRent) {
       await User.updateOne(
         { _id: req.user._id },
@@ -43,8 +43,14 @@ export const getUserRentedProducts = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
+  console.log("calling get user rented products");
+
   try {
-    const products = await Rent.findById({ owner: req.user._id });
+    const products = await Rent.find({ owner: req.user._id }).populate(
+      "product"
+    );
+    console.log(products);
+
     res.status(200).json({ rentedProducts: products });
     return;
   } catch (error) {

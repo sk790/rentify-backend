@@ -11,6 +11,7 @@ import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 export const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { phone, password } = req.body;
+    // console.log();
     if (!phone || !password) {
         res.status(400).json({ msg: "All field are required" });
         return;
@@ -36,6 +37,7 @@ export const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { phone, password } = req.body;
     console.log(phone, password);
+    console.log("calling login");
     try {
         if (!phone || !password) {
             res.status(400).json({ msg: "all field are required" });
@@ -90,7 +92,7 @@ export const getMyProfile = (req, res) => __awaiter(void 0, void 0, void 0, func
     try {
         const user = yield User.findById(req.user.id)
             .select("-password")
-            .populate(["products", "favorites"]);
+            .populate(["products", "favorites", "rented"]);
         if (!user) {
             res.status(404).json({ msg: "user not found" });
             return;
@@ -125,6 +127,23 @@ export const updateAvatar = (req, res) => __awaiter(void 0, void 0, void 0, func
             return;
         }
         yield user.updateOne({ avatar: req.body.avatar });
+        res.status(200).json({ msg: "Profile updated successfull" });
+        return;
+    }
+    catch (error) {
+        res.status(500).json({ msg: "INterna; server error" });
+        return;
+    }
+});
+export const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("update profile");
+    const { name, address, description } = req.body;
+    try {
+        const user = yield User.findById(req.user._id);
+        if (!user) {
+            res.status(404).json({ msg: "User not found" });
+        }
+        yield user.updateOne({ name, description, address });
         res.status(200).json({ msg: "Profile updated successfull" });
         return;
     }

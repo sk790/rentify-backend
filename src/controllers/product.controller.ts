@@ -102,36 +102,25 @@ export const updateProduct = async (
   console.log("calling update product");
 
   try {
-    const {
-      productName,
-      description,
-      subCategoryId,
-      deposit,
-      images,
-      availability,
-      location,
-    } = req.body;
+    const { description, timePeriod, price, address, status } = req.body;
     const product = await Product.findById(req.params.productId);
     if (!product) {
       res.status(400).json({ message: "product not find" });
       return;
     }
-    if (product.user !== req.user._id) {
+
+    if (product.user._id.toString() !== req.user._id.toString()) {
       res.status(400).json({ message: "You can not edit this product" });
       return;
     }
-    const newProduct = await product.updateOne({
-      productName,
+    await product.updateOne({
       description,
-      subCategoryId,
-      deposit,
-      availability,
-      location,
-      images: [
-        "https://cdn.bikedekho.com/processedimages/yamaha/r15-v4/source/r15-v466e5433ef20f5.jpg",
-      ],
+      timePeriod,
+      price,
+      address,
+      status,
     });
-    res.status(200).json({ message: "product updated", newProduct });
+    res.status(200).json({ message: "product updated" });
     return;
   } catch (error) {
     res.status(500).json({ message: "internal server error", error });
@@ -162,7 +151,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
   console.log("calling get all products");
 
   const { category, limit, userCoords, areaRange, startIndex } = req.query;
-  console.log(req.query);
+  // console.log(req.query);
 
   try {
     let products: any;
@@ -184,7 +173,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       res.status(404).json({ msg: "Product not found" });
       return;
     }
-    console.log(products, "cat");
+    // console.log(products, "cat");
 
     const distances: any = [];
     if ((userCoords && areaRange) || category) {
@@ -286,7 +275,7 @@ export const getFavoriteProducts = async (
       res.status(404).json({ msg: "User not found" });
       return;
     }
-    console.log(favorite);
+    // console.log(favorite);
 
     res
       .status(200)
@@ -301,14 +290,17 @@ export const getFavoriteProducts = async (
 };
 export const updateStatus = async (req: Request, res: Response) => {
   console.log("calling update status");
-  const { status } = req.body;
   try {
     const product = await Product.findById(req.params.productId);
     if (!product) {
       res.status(404).json({ msg: "Product not found" });
       return;
     }
-    await product.updateOne({ status });
+    if (product.status === "Available") {
+      await product.updateOne({ status: "Rented" });
+    } else {
+      await product.updateOne({ status: "Available" });
+    }
     res.status(200).json({ msg: "Product status updated" });
     return;
   } catch (error) {

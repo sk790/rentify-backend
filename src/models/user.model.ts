@@ -6,12 +6,15 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "sp"],
     default: "user",
   },
+  description: {
+    type: String,
+  },
   gender: { type: String, enum: ["male", "female", ""], default: "" },
   password: { type: String, required: true },
   phone: { type: String, unique: true, required: true },
   address: { type: String },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-  rented: [{ type: mongoose.Schema.ObjectId, ref: "Rent" }],
+  rented: [{ type: mongoose.Schema.ObjectId, ref: "Product" }],
   avatar: {
     type: String,
     default:

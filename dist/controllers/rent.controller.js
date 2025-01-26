@@ -17,7 +17,7 @@ export const toggleRent = (req, res) => __awaiter(void 0, void 0, void 0, functi
             res.status(404).json({ msg: "Product not found" });
             return;
         }
-        const existInRent = yield Rent.findById(product._id);
+        const existInRent = yield Rent.find({ product: product._id });
         if (existInRent) {
             yield User.updateOne({ _id: req.user._id }, { $pull: { rented: product._id } });
             yield Rent.findByIdAndDelete({
@@ -40,8 +40,10 @@ export const toggleRent = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 export const getUserRentedProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("calling get user rented products");
     try {
-        const products = yield Rent.findById({ owner: req.user._id });
+        const products = yield Rent.find({ owner: req.user._id }).populate("product");
+        console.log(products);
         res.status(200).json({ rentedProducts: products });
         return;
     }

@@ -74,28 +74,24 @@ export const removeProduct = (req, res) => __awaiter(void 0, void 0, void 0, fun
 export const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("calling update product");
     try {
-        const { productName, description, subCategoryId, deposit, images, availability, location, } = req.body;
+        const { description, timePeriod, price, address, status } = req.body;
         const product = yield Product.findById(req.params.productId);
         if (!product) {
             res.status(400).json({ message: "product not find" });
             return;
         }
-        if (product.user !== req.user._id) {
+        if (product.user._id.toString() !== req.user._id.toString()) {
             res.status(400).json({ message: "You can not edit this product" });
             return;
         }
-        const newProduct = yield product.updateOne({
-            productName,
+        yield product.updateOne({
             description,
-            subCategoryId,
-            deposit,
-            availability,
-            location,
-            images: [
-                "https://cdn.bikedekho.com/processedimages/yamaha/r15-v4/source/r15-v466e5433ef20f5.jpg",
-            ],
+            timePeriod,
+            price,
+            address,
+            status,
         });
-        res.status(200).json({ message: "product updated", newProduct });
+        res.status(200).json({ message: "product updated" });
         return;
     }
     catch (error) {
@@ -123,7 +119,7 @@ export const getProductDetail = (req, res) => __awaiter(void 0, void 0, void 0, 
 export const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("calling get all products");
     const { category, limit, userCoords, areaRange, startIndex } = req.query;
-    console.log(req.query);
+    // console.log(req.query);
     try {
         let products;
         let len = 0;
@@ -145,7 +141,7 @@ export const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, fu
             res.status(404).json({ msg: "Product not found" });
             return;
         }
-        console.log(products, "cat");
+        // console.log(products, "cat");
         const distances = [];
         if ((userCoords && areaRange) || category) {
             const parsedUserCoords = JSON.parse(userCoords);
@@ -231,7 +227,7 @@ export const getFavoriteProducts = (req, res) => __awaiter(void 0, void 0, void 
             res.status(404).json({ msg: "User not found" });
             return;
         }
-        console.log(favorite);
+        // console.log(favorite);
         res
             .status(200)
             .json({ msg: "Favorite products", favoriteProducts: favorite });
@@ -246,14 +242,18 @@ export const getFavoriteProducts = (req, res) => __awaiter(void 0, void 0, void 
 });
 export const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("calling update status");
-    const { status } = req.body;
     try {
         const product = yield Product.findById(req.params.productId);
         if (!product) {
             res.status(404).json({ msg: "Product not found" });
             return;
         }
-        yield product.updateOne({ status });
+        if (product.status === "Available") {
+            yield product.updateOne({ status: "Rented" });
+        }
+        else {
+            yield product.updateOne({ status: "Available" });
+        }
         res.status(200).json({ msg: "Product status updated" });
         return;
     }

@@ -8,6 +8,7 @@ interface AuthenticateRequest extends Request {
 }
 export const signUp = async (req: Request, res: Response): Promise<void> => {
   const { phone, password } = req.body;
+  // console.log();
 
   if (!phone || !password) {
     res.status(400).json({ msg: "All field are required" });
@@ -39,6 +40,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { phone, password } = req.body;
   console.log(phone, password);
+  console.log("calling login");
 
   try {
     if (!phone || !password) {
@@ -102,7 +104,7 @@ export const getMyProfile = async (
   try {
     const user = await User.findById(req.user.id)
       .select("-password")
-      .populate(["products", "favorites"]);
+      .populate(["products", "favorites", "rented"]);
 
     if (!user) {
       res.status(404).json({ msg: "user not found" });
@@ -134,11 +136,32 @@ export const logOut = (req: Request, res: Response): void => {
 export const updateAvatar = async (req: AuthenticateRequest, res: Response) => {
   try {
     const user = await User.findById(req.user._id);
+
     if (!user) {
       res.status(404).json({ msg: "User not found" });
       return;
     }
     await user.updateOne({ avatar: req.body.avatar });
+    res.status(200).json({ msg: "Profile updated successfull" });
+    return;
+  } catch (error) {
+    res.status(500).json({ msg: "INterna; server error" });
+    return;
+  }
+};
+export const updateProfile = async (
+  req: AuthenticateRequest,
+  res: Response
+) => {
+  console.log("update profile");
+  const { name, address, description } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ msg: "User not found" });
+    }
+    await user.updateOne({ name, description, address });
     res.status(200).json({ msg: "Profile updated successfull" });
     return;
   } catch (error) {
