@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { Product } from "../models/product.model.js";
 import User from "../models/user.model.js";
 import useGetDistance from "../utils/useGetDistance.js";
-import mongoose from "mongoose";
 import { Favorite } from "../models/favorite.model.js";
+import { Rent } from "../models/rent.model.js";
 interface AuthenticatedRequest extends Request {
   user?: any;
 }
@@ -24,7 +24,6 @@ export const addProduct = async (
       category,
       period,
       price,
-      status,
       title,
     } = formData;
 
@@ -37,7 +36,6 @@ export const addProduct = async (
       timePeriod: period,
       price,
       title,
-      status,
       images,
       user: req.user._id,
     });
@@ -259,54 +257,49 @@ export const addToFavorite = async (
     return;
   }
 };
-
-export const getFavoriteProducts = async (
+export const updateStatus = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  console.log("calling get favorite products");
-
-  try {
-    // console.log({ user: req.user._id });
-    const favorite = await Favorite.find({ user: req.user._id }).populate(
-      "product"
-    );
-    if (!favorite) {
-      res.status(404).json({ msg: "User not found" });
-      return;
-    }
-    // console.log(favorite);
-
-    res
-      .status(200)
-      .json({ msg: "Favorite products", favoriteProducts: favorite });
-    return;
-  } catch (error) {
-    res
-      .status(500)
-      .json({ msg: "Internal Server error", error: error.message });
-    return;
-  }
-};
-export const updateStatus = async (req: Request, res: Response) => {
-  console.log("calling update status");
+  console.log("calling update status of rented");
   try {
     const product = await Product.findById(req.params.productId);
     if (!product) {
       res.status(404).json({ msg: "Product not found" });
       return;
     }
-    if (product.status === "Available") {
-      await product.updateOne({ status: "Rented" });
-    } else {
-      await product.updateOne({ status: "Available" });
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ msg: "User not found" });
+      return;
     }
-    res.status(200).json({ msg: "Product status updated" });
-    return;
+    if (product.user._id.toString() !== req.user._id.toString()) {
+      res.status(400).json({ message: "You can not edit this product" });
+      return;
+    }
+    const isRented = await Rent.findOne({
+      product: product._id,
+      owner: req.user._id,
+    });
+    if (isRented) {
+      await user.updateOne({ $pull: { rented: product._id } });
+      await Rent.findByIdAndDelete(isRented._id);
+      res.status(200).json({ msg: "Product removed from rented" });
+      return;
+    } else {
+      await Rent.create({
+        product: product._id,
+        owner: req.user._id,
+      });
+      await user.updateOne({ $push: { rented: product._id } });
+      res.status(200).json({ msg: "Product added to rented" });
+      return;
+    }
   } catch (error) {
     res
       .status(500)
       .json({ msg: "Internal Server error", error: error.message });
+    console.log(error);
     return;
   }
 };

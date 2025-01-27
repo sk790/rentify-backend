@@ -11,7 +11,6 @@ configDotenv();
 
 import authRouter from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
-import rentedProductsRoutes from "./routes/rentRoutes.js";
 import admin from "./routes/serverRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 
@@ -43,7 +42,6 @@ app.use(
 );
 app.use("/api/auth", authRouter);
 app.use("/api/product", productRoutes);
-app.use("/api/rent", rentedProductsRoutes);
 app.use("/api/admin", admin);
 app.use("/api/chat", chatRoutes);
 

@@ -11,12 +11,13 @@ import { Product } from "../models/product.model.js";
 import User from "../models/user.model.js";
 import useGetDistance from "../utils/useGetDistance.js";
 import { Favorite } from "../models/favorite.model.js";
+import { Rent } from "../models/rent.model.js";
 //user route
 export const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log("calling add product");
         const { formData, images } = req.body;
-        const { productName, description, cordinets, address, category, period, price, status, title, } = formData;
+        const { productName, description, cordinets, address, category, period, price, title, } = formData;
         const newProduct = yield Product.create({
             productName,
             description,
@@ -26,7 +27,6 @@ export const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, functi
             timePeriod: period,
             price,
             title,
-            status,
             images,
             user: req.user._id,
         });
@@ -218,49 +218,48 @@ export const addToFavorite = (req, res) => __awaiter(void 0, void 0, void 0, fun
         return;
     }
 });
-export const getFavoriteProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("calling get favorite products");
-    try {
-        // console.log({ user: req.user._id });
-        const favorite = yield Favorite.find({ user: req.user._id }).populate("product");
-        if (!favorite) {
-            res.status(404).json({ msg: "User not found" });
-            return;
-        }
-        // console.log(favorite);
-        res
-            .status(200)
-            .json({ msg: "Favorite products", favoriteProducts: favorite });
-        return;
-    }
-    catch (error) {
-        res
-            .status(500)
-            .json({ msg: "Internal Server error", error: error.message });
-        return;
-    }
-});
 export const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("calling update status");
+    console.log("calling update status of rented");
     try {
         const product = yield Product.findById(req.params.productId);
         if (!product) {
             res.status(404).json({ msg: "Product not found" });
             return;
         }
-        if (product.status === "Available") {
-            yield product.updateOne({ status: "Rented" });
+        const user = yield User.findById(req.user._id);
+        if (!user) {
+            res.status(404).json({ msg: "User not found" });
+            return;
+        }
+        if (product.user._id.toString() !== req.user._id.toString()) {
+            res.status(400).json({ message: "You can not edit this product" });
+            return;
+        }
+        const isRented = yield Rent.findOne({
+            product: product._id,
+            owner: req.user._id,
+        });
+        if (isRented) {
+            yield user.updateOne({ $pull: { rented: product._id } });
+            yield Rent.findByIdAndDelete(isRented._id);
+            res.status(200).json({ msg: "Product removed from rented" });
+            return;
         }
         else {
-            yield product.updateOne({ status: "Available" });
+            yield Rent.create({
+                product: product._id,
+                owner: req.user._id,
+            });
+            yield user.updateOne({ $push: { rented: product._id } });
+            res.status(200).json({ msg: "Product added to rented" });
+            return;
         }
-        res.status(200).json({ msg: "Product status updated" });
-        return;
     }
     catch (error) {
         res
             .status(500)
             .json({ msg: "Internal Server error", error: error.message });
+        console.log(error);
         return;
     }
 });

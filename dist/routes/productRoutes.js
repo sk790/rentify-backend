@@ -1,12 +1,12 @@
 import express from "express";
 import { verify } from "../middlewares/verify.js";
-import { addProduct, addToFavorite, getAllProducts, getFavoriteProducts, getProductDetail, removeProduct, updateProduct, updateStatus, } from "../controllers/product.controller.js";
+import { addProduct, addToFavorite, getAllProducts, getProductDetail, removeProduct, updateProduct, updateStatus, } from "../controllers/product.controller.js";
 const router = express.Router();
 //user routes
 router.route("/listing").post(verify, addProduct);
 router.route("/products").get(getAllProducts);
 router.route("/favorite/:productId").put(verify, addToFavorite);
-router.route("/get-favorite-products").get(verify, getFavoriteProducts);
+router.route("/rented/:productId").put(verify, updateStatus);
 router
     .route("/:productId")
     .get(getProductDetail)

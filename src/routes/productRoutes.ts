@@ -4,7 +4,6 @@ import {
   addProduct,
   addToFavorite,
   getAllProducts,
-  getFavoriteProducts,
   getProductDetail,
   removeProduct,
   updateProduct,
@@ -16,7 +15,7 @@ const router = express.Router();
 router.route("/listing").post(verify, addProduct);
 router.route("/products").get(getAllProducts);
 router.route("/favorite/:productId").put(verify, addToFavorite);
-router.route("/get-favorite-products").get(verify, getFavoriteProducts);
+router.route("/rented/:productId").put(verify, updateStatus);
 router
   .route("/:productId")
   .get(getProductDetail)

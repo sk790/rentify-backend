@@ -4,11 +4,6 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    status: {
-        type: String,
-        enum: ["Available", "Rented", "Not Available"],
-        default: "Available",
-    },
     productName: {
         type: String,
         required: true,
