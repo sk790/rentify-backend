@@ -122,16 +122,22 @@ export const getMyProfile = async (
 };
 export const logOut = (req: Request, res: Response): void => {
   console.log("calling log out");
-
-  res
-    .status(200)
-    .clearCookie("rentify_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
-    .json({ msg: "log out successfull" });
-  return;
+  try {
+    res
+      .status(200)
+      .clearCookie("rentify_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .json({ msg: "log out successfull" });
+    return;
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Internal Server error", error: error.message });
+    return;
+  }
 };
 export const updateAvatar = async (req: AuthenticateRequest, res: Response) => {
   try {

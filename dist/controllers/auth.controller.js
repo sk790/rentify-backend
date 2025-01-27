@@ -109,15 +109,23 @@ export const getMyProfile = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 export const logOut = (req, res) => {
     console.log("calling log out");
-    res
-        .status(200)
-        .clearCookie("rentify_token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-    })
-        .json({ msg: "log out successfull" });
-    return;
+    try {
+        res
+            .status(200)
+            .clearCookie("rentify_token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        })
+            .json({ msg: "log out successfull" });
+        return;
+    }
+    catch (error) {
+        res
+            .status(500)
+            .json({ msg: "Internal Server error", error: error.message });
+        return;
+    }
 };
 export const updateAvatar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
