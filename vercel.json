@@ -12,7 +12,6 @@
       "dest": "dist/index.js"
     }
   ],
-
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs18.x"
