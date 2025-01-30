@@ -39,7 +39,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { phone, password } = req.body;
-  console.log(phone, password);
+  // console.log(phone, password);
   console.log("calling login");
 
   try {

@@ -1,12 +1,12 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import { connectToDB } from "./config/db.js";
 import { configDotenv } from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import bodyParser from "body-parser";
-import http from "http"; // Required for server creation
-import { Server } from "socket.io"; // Importing Socket.IO
-import { Message } from "./models/chat.Model.js"; // Ensure you have the Message model
+import http from "http";
+import { Server } from "socket.io";
+import { Message } from "./models/chat.Model.js";
+
 configDotenv();
 
 import authRouter from "./routes/authRoutes.js";
@@ -16,7 +16,6 @@ import chatRoutes from "./routes/chatRoutes.js";
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Create an HTTP server
 const server = http.createServer(app);
 
 // Initialize Socket.IO
@@ -58,7 +57,6 @@ io.on("connection", (socket) => {
 
   io.emit("getOnlineUsers", Object.keys(users));
 
-  // Handle sending messages
   socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
     try {
       if (!message || !senderId || !receiverId) return;
@@ -71,8 +69,6 @@ io.on("connection", (socket) => {
 
       const receiverSocketId = getReceiverSocketId(receiverId);
       if (receiverSocketId) {
-        console.log(newMessage, "newMessage");
-
         io.to(receiverSocketId).emit("newMessage", newMessage);
         console.log(`Sent newMessage event to ${receiverSocketId}`);
       }
@@ -88,7 +84,12 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server
-server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
+// For local development, listen on a port
+if (process.env.NODE_ENV !== "production") {
+  server.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+  });
+}
+
+// Default export for Vercel
+export default server;
