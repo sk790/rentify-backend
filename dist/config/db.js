@@ -10,7 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import mongoose from "mongoose";
 export const connectToDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const res = yield mongoose.connect("mongodb+srv://saurabhk2890:oeTJRCysjKdYIBHU@cluster0.5fqky.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", { dbName: "rentify" });
+        const res = yield mongoose.connect(process.env.MONGO_URI, {
+            dbName: "rentify",
+        });
         console.log("Connected to databasee", res.connection.host);
     }
     catch (error) {
