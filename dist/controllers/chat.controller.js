@@ -7,55 +7,74 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Conversation, Message } from "../models/chat.Model.js";
-export const startConversation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { msg } = req.body;
-    const senderId = req.user._id;
-    const recieverId = req.params.userId;
-    let conversation = yield Conversation.findOne({
-        participants: { $all: [recieverId, senderId] },
-    });
-    if (!conversation) {
-        // Create a new conversation
-        conversation = new Conversation({ participants: [recieverId, senderId] });
+import User from "../models/user.model.js";
+import { Message } from "../models/chat.Model.js";
+import { getReceiverSocketId, io } from "../index.js";
+export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { senderId, receiverId, text } = req.body;
+        // const sender = await User.findById(senderId);
         const message = new Message({
-            conversation: conversation._id,
-            content: msg,
             sender: senderId,
+            receiver: receiverId,
+            text,
         });
         yield message.save();
-        yield conversation.save();
-    }
-    return conversation;
-});
-export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { msg } = req.body;
-    const senderId = req.user._id;
-    const recieverId = req.params.recieverId;
-    if (!recieverId) {
-        res.status(404).json({ msg: "Reciever id must" });
+        res.status(201).json({ msg: "Message sent successfully!", message });
         return;
     }
-    let conversation = yield Conversation.findOne({
-        participants: { $all: [recieverId, senderId] },
-    });
-    if (!conversation) {
-        conversation = new Conversation({ participants: [recieverId, senderId] });
-        yield conversation.save();
+    catch (error) {
+        res.status(500).json({ msg: "Internal Server error", error });
     }
-    const message = new Message({
-        conversation: conversation._id,
-        sender: senderId,
-        content: msg,
-    });
-    yield conversation.save();
-    yield message.save();
-    res.status(200).json({ msg: "message sent" });
-    return;
 });
-export const getMessages = (conversationId) => __awaiter(void 0, void 0, void 0, function* () {
-    const messages = yield Message.find({ conversation: conversationId })
-        .populate("sender", "username")
-        .sort("timestamp");
-    return messages;
+export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("calling get messages");
+    const { chatUserId } = req.params;
+    const userId = req.user._id;
+    try {
+        const messages = yield Message.find({
+            $or: [
+                { sender: userId, receiver: chatUserId },
+                { sender: chatUserId, receiver: userId },
+            ],
+        }).sort({ createdAt: 1 });
+        const receiverSocketId = getReceiverSocketId(chatUserId);
+        if (receiverSocketId) {
+            // console.log(receiverSocketId, "receiverSocketId");
+            console.log("Sent newMessage event to:", receiverSocketId);
+            io.to(receiverSocketId).emit("newMessage", messages);
+        }
+        res.status(200).json({ messages });
+        return;
+    }
+    catch (error) {
+        res
+            .status(500)
+            .json({ msg: "Internal Server error", error: error.message });
+        return;
+    }
+});
+export const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    try {
+        const messages = yield Message.find({
+            $or: [{ sender: userId }, { receiver: userId }],
+            // deletedBy: { $ne: userId }, // Exclude deleted conversations
+        }).sort({ createdAt: -1 });
+        const users = new Set();
+        messages.forEach((msg) => {
+            users.add(msg.sender.toString());
+            users.add(msg.receiver.toString());
+        });
+        // users.delete(userId); // Remove self from conversations
+        const conversations = yield User.find({ _id: { $in: Array.from(users) } });
+        res.status(200).json(conversations);
+        return;
+    }
+    catch (error) {
+        res
+            .status(500)
+            .json({ msg: "Internal Server error", error: error.message });
+        return;
+    }
 });

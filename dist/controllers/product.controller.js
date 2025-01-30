@@ -119,13 +119,13 @@ export const getProductDetail = (req, res) => __awaiter(void 0, void 0, void 0, 
 export const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("calling get all products");
     const { category, limit, userCoords, areaRange, startIndex } = req.query;
-    // console.log(req.query);
     try {
         let products;
         let len = 0;
         if (category) {
-            len = yield Product.find({ category }).countDocuments();
-            products = yield Product.find({ category })
+            const query = { category: { $regex: `${category}`, $options: "i" } };
+            len = yield Product.find(query).countDocuments();
+            products = yield Product.find(query)
                 .populate("user")
                 .limit(parseInt(limit) || 10)
                 .sort({ createdAt: -1 })

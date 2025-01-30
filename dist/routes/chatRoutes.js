@@ -1,6 +1,8 @@
 import express from "express";
-import { sendMessage } from "../controllers/chat.controller.js";
+import { getConversations, getMessages, sendMessage, } from "../controllers/chat.controller.js";
 import { verify } from "../middlewares/verify.js";
 const router = express.Router();
-router.route("/send-message/:recieverId").post(verify, sendMessage);
+router.route("/send-message").post(verify, sendMessage);
+router.route("/get-conversations").get(verify, getConversations);
+router.route("/get-messages/:chatUserId").get(verify, getMessages);
 export default router;

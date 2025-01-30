@@ -1,23 +1,26 @@
 import mongoose from "mongoose";
 
-const conversationSchema = new mongoose.Schema({
-  participants: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  ],
-  createdAt: { type: Date, default: Date.now },
-});
-
-export const Conversation = mongoose.model("Conversation", conversationSchema);
-
-const messageSchema = new mongoose.Schema({
-  conversation: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Conversation",
-    required: true,
+const messageSchema = new mongoose.Schema(
+  {
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    receiver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    text: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "read"],
+      default: "sent",
+    },
+    deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Users who deleted this message
   },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  content: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+  { timestamps: true }
+);
 
 export const Message = mongoose.model("Message", messageSchema);

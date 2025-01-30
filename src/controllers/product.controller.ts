@@ -149,14 +149,14 @@ export const getAllProducts = async (req: Request, res: Response) => {
   console.log("calling get all products");
 
   const { category, limit, userCoords, areaRange, startIndex } = req.query;
-  // console.log(req.query);
 
   try {
     let products: any;
     let len: number = 0;
     if (category) {
-      len = await Product.find({ category }).countDocuments();
-      products = await Product.find({ category })
+      const query = { category: { $regex: `${category}`, $options: "i" } };
+      len = await Product.find(query).countDocuments();
+      products = await Product.find(query)
         .populate("user")
         .limit(parseInt(limit as string) || 10)
         .sort({ createdAt: -1 })

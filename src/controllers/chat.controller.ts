@@ -1,64 +1,82 @@
 import { Request, Response } from "express";
-import { Conversation, Message } from "../models/chat.Model.js";
+import User from "../models/user.model.js";
+import { Message } from "../models/chat.Model.js";
+import { getReceiverSocketId, io } from "../index.js";
 
 interface AuthenticateRequest extends Request {
   user?: any;
 }
+export const sendMessage = async (req: Request, res: Response) => {
+  try {
+    const { senderId, receiverId, text } = req.body;
+    // const sender = await User.findById(senderId);
 
-export const startConversation = async (
+    const message = new Message({
+      sender: senderId,
+      receiver: receiverId,
+      text,
+    });
+    await message.save();
+    res.status(201).json({ msg: "Message sent successfully!", message });
+    return;
+  } catch (error) {
+    res.status(500).json({ msg: "Internal Server error", error });
+  }
+};
+
+export const getMessages = async (req: AuthenticateRequest, res: Response) => {
+  console.log("calling get messages");
+
+  const { chatUserId } = req.params;
+  const userId = req.user._id;
+  try {
+    const messages = await Message.find({
+      $or: [
+        { sender: userId, receiver: chatUserId },
+        { sender: chatUserId, receiver: userId },
+      ],
+    }).sort({ createdAt: 1 });
+    const receiverSocketId = getReceiverSocketId(chatUserId);
+    if (receiverSocketId) {
+      // console.log(receiverSocketId, "receiverSocketId");
+      console.log("Sent newMessage event to:", receiverSocketId);
+      io.to(receiverSocketId).emit("newMessage", messages);
+    }
+    res.status(200).json({ messages });
+    return;
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Internal Server error", error: error.message });
+    return;
+  }
+};
+
+export const getConversations = async (
   req: AuthenticateRequest,
   res: Response
 ) => {
-  const { msg } = req.body;
-  const senderId = req.user._id;
-  const recieverId = req.params.userId;
-  let conversation = await Conversation.findOne({
-    participants: { $all: [recieverId, senderId] },
-  });
-  if (!conversation) {
-    // Create a new conversation
-    conversation = new Conversation({ participants: [recieverId, senderId] });
-    const message = new Message({
-      conversation: conversation._id,
-      content: msg,
-      sender: senderId,
-    });
-    await message.save();
-    await conversation.save();
-  }
-  return conversation;
-};
+  const userId = req.user._id;
+  try {
+    const messages = await Message.find({
+      $or: [{ sender: userId }, { receiver: userId }],
+      // deletedBy: { $ne: userId }, // Exclude deleted conversations
+    }).sort({ createdAt: -1 });
 
-export const sendMessage = async (req: AuthenticateRequest, res: Response) => {
-  const { msg } = req.body;
-  const senderId = req.user._id;
-  const recieverId = req.params.recieverId;
-  if (!recieverId) {
-    res.status(404).json({ msg: "Reciever id must" });
+    const users = new Set();
+    messages.forEach((msg) => {
+      users.add(msg.sender.toString());
+      users.add(msg.receiver.toString());
+    });
+
+    // users.delete(userId); // Remove self from conversations
+    const conversations = await User.find({ _id: { $in: Array.from(users) } });
+    res.status(200).json(conversations);
+    return;
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Internal Server error", error: error.message });
     return;
   }
-
-  let conversation = await Conversation.findOne({
-    participants: { $all: [recieverId, senderId] },
-  });
-  if (!conversation) {
-    conversation = new Conversation({ participants: [recieverId, senderId] });
-    await conversation.save();
-  }
-  const message = new Message({
-    conversation: conversation._id,
-    sender: senderId,
-    content: msg,
-  });
-  await conversation.save();
-  await message.save();
-  res.status(200).json({ msg: "message sent" });
-  return;
-};
-
-export const getMessages = async (conversationId: string) => {
-  const messages = await Message.find({ conversation: conversationId })
-    .populate("sender", "username")
-    .sort("timestamp");
-  return messages;
 };
