@@ -2,7 +2,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import { configDotenv } from "dotenv";
-import { connectToDB } from "./config/db.js";
+// import { connectToDB } from "./config/db.js";
 import { Message } from "./models/chat.Model.js";
 import express from "express";
 
@@ -22,7 +22,7 @@ const io = new Server(socketServer, {
 });
 
 // Database connection
-connectToDB();
+// connectToDB();
 
 const users: Record<string, string> = {};
 
@@ -42,22 +42,19 @@ io.on("connection", (socket) => {
   io.emit("getOnlineUsers", Object.keys(users));
 
   socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
-    try {
-      if (!message || !senderId || !receiverId) return;
-      const newMessage = new Message({
-        sender: senderId,
-        receiver: receiverId,
-        text: message,
-      });
-      await newMessage.save();
+    if (!message || !senderId || !receiverId) return;
+    const newMessage = {
+      sender: senderId,
+      receiver: receiverId,
+      text: message,
+    };
+    console.log(newMessage);
 
-      const receiverSocketId = getReceiverSocketId(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("newMessage", newMessage);
-        console.log(`Sent newMessage event to ${receiverSocketId}`);
-      }
-    } catch (error) {
-      console.error("Error saving message:", error);
+    if (senderId === receiverId) return;
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+      console.log(`Sent newMessage event to ${receiverSocketId}`);
     }
   });
 

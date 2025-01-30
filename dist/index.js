@@ -4,6 +4,7 @@ import { configDotenv } from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { app, socketServer } from "./socket.js";
+// const app = express();
 configDotenv();
 import authRouter from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -19,7 +20,7 @@ const port = process.env.PORT || 5000;
 //   },
 // });
 // Middleware
-connectToDB();
+// connectToDB();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -34,7 +35,6 @@ app.use("/api/chat", chatRoutes);
 //   return users[receiverId];
 // };
 // io.on("connection", (socket) => {
-//   console.log("A user connected:", socket.id);
 //   const userId = socket.handshake.query.userId as string;
 //   if (userId && userId !== "undefined") {
 //     users[userId] = socket.id;
@@ -42,21 +42,18 @@ app.use("/api/chat", chatRoutes);
 //   }
 //   io.emit("getOnlineUsers", Object.keys(users));
 //   socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
-//     try {
-//       if (!message || !senderId || !receiverId) return;
-//       const newMessage = new Message({
-//         sender: senderId,
-//         receiver: receiverId,
-//         text: message,
-//       });
-//       await newMessage.save();
-//       const receiverSocketId = getReceiverSocketId(receiverId);
-//       if (receiverSocketId) {
-//         io.to(receiverSocketId).emit("newMessage", newMessage);
-//         console.log(`Sent newMessage event to ${receiverSocketId}`);
-//       }
-//     } catch (error) {
-//       console.error("Error saving message:", error);
+//     if (!message || !senderId || !receiverId) return;
+//     const newMessage = {
+//       sender: senderId,
+//       receiver: receiverId,
+//       text: message,
+//     };
+//     if (senderId === receiverId) return;
+//     const receiverSocketId = getReceiverSocketId(receiverId);
+//     // console.log(receiverSocketId, "receiverSocketId");
+//     if (receiverSocketId) {
+//       io.to(receiverSocketId).emit("newMessage", newMessage);
+//       console.log(`Sent newMessage event to ${receiverSocketId}`);
 //     }
 //   });
 //   socket.on("disconnect", () => {
@@ -67,10 +64,14 @@ app.use("/api/chat", chatRoutes);
 // });
 // For local development, listen on a port
 // if (process.env.NODE_ENV !== "production") {
-socketServer.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-});
+//   server.listen(port, () => {
+//     console.log(`Server is running at http://localhost:${port}`);
+//   });
 // }
 // Default export for Vercel
 // export default server;
 // export default app;
+socketServer.listen(port, () => {
+    connectToDB();
+    console.log(`Server is running at http://localhost:${port}`);
+});

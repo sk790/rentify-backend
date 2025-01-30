@@ -5,7 +5,7 @@ export const connectToDB = async () => {
       "mongodb+srv://saurabhk2890:oeTJRCysjKdYIBHU@cluster0.5fqky.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
       { dbName: "rentify" }
     );
-    console.log("Connected to database", res.connection.host);
+    console.log("Connected to databasee", res.connection.host);
   } catch (error) {
     console.log("db failed", error);
   }

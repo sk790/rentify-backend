@@ -26,7 +26,6 @@ export const sendMessage = async (req: Request, res: Response) => {
 
 export const getMessages = async (req: AuthenticateRequest, res: Response) => {
   console.log("calling get messages");
-
   const { chatUserId } = req.params;
   const userId = req.user._id;
   try {
@@ -39,7 +38,7 @@ export const getMessages = async (req: AuthenticateRequest, res: Response) => {
     const receiverSocketId = getReceiverSocketId(chatUserId);
     if (receiverSocketId) {
       // console.log(receiverSocketId, "receiverSocketId");
-      console.log("Sent newMessage event to:", receiverSocketId);
+      console.log("Sent newMessage event to in controller:", receiverSocketId);
       io.to(receiverSocketId).emit("newMessage", messages);
     }
     res.status(200).json({ messages });

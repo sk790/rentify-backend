@@ -11,8 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Server } from "socket.io";
 import http from "http";
 import { configDotenv } from "dotenv";
-import { connectToDB } from "./config/db.js";
-import { Message } from "./models/chat.Model.js";
 import express from "express";
 configDotenv();
 const app = express();
@@ -27,7 +25,7 @@ const io = new Server(socketServer, {
     },
 });
 // Database connection
-connectToDB();
+// connectToDB();
 const users = {};
 export const getReceiverSocketId = (receiverId) => {
     return users[receiverId];
@@ -41,23 +39,20 @@ io.on("connection", (socket) => {
     }
     io.emit("getOnlineUsers", Object.keys(users));
     socket.on("sendMessage", (_a) => __awaiter(void 0, [_a], void 0, function* ({ senderId, receiverId, message }) {
-        try {
-            if (!message || !senderId || !receiverId)
-                return;
-            const newMessage = new Message({
-                sender: senderId,
-                receiver: receiverId,
-                text: message,
-            });
-            yield newMessage.save();
-            const receiverSocketId = getReceiverSocketId(receiverId);
-            if (receiverSocketId) {
-                io.to(receiverSocketId).emit("newMessage", newMessage);
-                console.log(`Sent newMessage event to ${receiverSocketId}`);
-            }
-        }
-        catch (error) {
-            console.error("Error saving message:", error);
+        if (!message || !senderId || !receiverId)
+            return;
+        const newMessage = {
+            sender: senderId,
+            receiver: receiverId,
+            text: message,
+        };
+        console.log(newMessage);
+        if (senderId === receiverId)
+            return;
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+            console.log(`Sent newMessage event to ${receiverSocketId}`);
         }
     }));
     socket.on("disconnect", () => {
