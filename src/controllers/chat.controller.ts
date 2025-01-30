@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
-import { getReceiverSocketId, io } from "../socket.js";
 
 interface AuthenticateRequest extends Request {
   user?: any;
@@ -35,12 +34,12 @@ export const getMessages = async (req: AuthenticateRequest, res: Response) => {
         { sender: chatUserId, receiver: userId },
       ],
     }).sort({ createdAt: 1 });
-    const receiverSocketId = getReceiverSocketId(chatUserId);
-    if (receiverSocketId) {
-      // console.log(receiverSocketId, "receiverSocketId");
-      console.log("Sent newMessage event to in controller:", receiverSocketId);
-      io.to(receiverSocketId).emit("newMessage", messages);
-    }
+    // const receiverSocketId = getReceiverSocketId(chatUserId);
+    // if (receiverSocketId) {
+    //   // console.log(receiverSocketId, "receiverSocketId");
+    //   console.log("Sent newMessage event to in controller:", receiverSocketId);
+    //   io.to(receiverSocketId).emit("newMessage", messages);
+    // }
     res.status(200).json({ messages });
     return;
   } catch (error) {

@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
-import { getReceiverSocketId, io } from "../socket.js";
 export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { senderId, receiverId, text } = req.body;
@@ -38,12 +37,12 @@ export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 { sender: chatUserId, receiver: userId },
             ],
         }).sort({ createdAt: 1 });
-        const receiverSocketId = getReceiverSocketId(chatUserId);
-        if (receiverSocketId) {
-            // console.log(receiverSocketId, "receiverSocketId");
-            console.log("Sent newMessage event to in controller:", receiverSocketId);
-            io.to(receiverSocketId).emit("newMessage", messages);
-        }
+        // const receiverSocketId = getReceiverSocketId(chatUserId);
+        // if (receiverSocketId) {
+        //   // console.log(receiverSocketId, "receiverSocketId");
+        //   console.log("Sent newMessage event to in controller:", receiverSocketId);
+        //   io.to(receiverSocketId).emit("newMessage", messages);
+        // }
         res.status(200).json({ messages });
         return;
     }
