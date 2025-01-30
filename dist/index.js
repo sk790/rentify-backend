@@ -20,42 +20,10 @@ app.use(cors({
 app.use("/api/auth", authRouter);
 app.use("/api/product", productRoutes);
 app.use("/api/chat", chatRoutes);
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-const users = {}; // Store userId -> socketId mapping
-export const getReceiverSocketId = (receiverId) => {
-    return users[receiverId];
-};
-// io.on("connection", (socket) => {
-//   console.log("A user connected:", socket.id);
-//   const userId = socket.handshake.query.userId as string;
-//   if (userId && userId !== "undefined") {
-//     users[userId] = socket.id;
-//     console.log(`User registered: ${userId} -> ${socket.id}`);
-//   }
-//   io.emit("getOnlineUsers", Object.keys(users));
-//   socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
-//     try {
-//       if (!message || !senderId || !receiverId) return;
-//       const newMessage = new Message({
-//         sender: senderId,
-//         receiver: receiverId,
-//         text: message,
-//       });
-//       await newMessage.save();
-//       const receiverSocketId = getReceiverSocketId(receiverId);
-//       if (receiverSocketId) {
-//         io.to(receiverSocketId).emit("newMessage", newMessage);
-//         console.log(`Sent newMessage event to ${receiverSocketId}`);
-//       }
-//     } catch (error) {
-//       console.error("Error saving message:", error);
-//     }
-//   });
-//   socket.on("disconnect", () => {
-//     console.log(`User disconnected: ${userId}`);
-//     delete users[userId];
-//     io.emit("getOnlineUsers", Object.keys(users));
-//   });
-// });
+// Ensure Vercel serverless functions return the Express app
+if (process.env.NODE_ENV === "development") {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+export default app;
