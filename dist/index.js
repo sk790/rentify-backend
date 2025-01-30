@@ -5,10 +5,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 // import { Server } from "socket.io";
 configDotenv();
+const PORT = process.env.PORT || 5000;
 import authRouter from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
-const port = process.env.PORT || 5000;
 const app = express();
 // Middleware
 connectToDB();
@@ -21,8 +21,8 @@ app.use(cors({
 app.use("/api/auth", authRouter);
 app.use("/api/product", productRoutes);
 app.use("/api/chat", chatRoutes);
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
 });
 // export const io = new Server(expressServer, {
 //   cors: {
