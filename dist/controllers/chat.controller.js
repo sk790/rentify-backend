@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
-import { getReceiverSocketId, io } from "../index.js";
+import { getReceiverSocketId, io } from "../socket.js";
 export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { senderId, receiverId, text } = req.body;

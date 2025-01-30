@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
-import { getReceiverSocketId, io } from "../index.js";
+import { getReceiverSocketId, io } from "../socket.js";
 
 interface AuthenticateRequest extends Request {
   user?: any;

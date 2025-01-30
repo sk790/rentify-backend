@@ -36,7 +36,7 @@ export const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { phone, password } = req.body;
-    console.log(phone, password);
+    // console.log(phone, password);
     console.log("calling login");
     try {
         if (!phone || !password) {
