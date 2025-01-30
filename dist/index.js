@@ -3,6 +3,7 @@ import { connectToDB } from "./config/db.js";
 import { configDotenv } from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+// import { Server } from "socket.io";
 configDotenv();
 import authRouter from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
