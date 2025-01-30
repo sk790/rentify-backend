@@ -34,12 +34,6 @@ export const getMessages = async (req: AuthenticateRequest, res: Response) => {
         { sender: chatUserId, receiver: userId },
       ],
     }).sort({ createdAt: 1 });
-    // const receiverSocketId = getReceiverSocketId(chatUserId);
-    // if (receiverSocketId) {
-    //   // console.log(receiverSocketId, "receiverSocketId");
-    //   console.log("Sent newMessage event to in controller:", receiverSocketId);
-    //   io.to(receiverSocketId).emit("newMessage", messages);
-    // }
     res.status(200).json({ messages });
     return;
   } catch (error) {

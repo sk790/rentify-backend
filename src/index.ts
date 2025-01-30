@@ -3,7 +3,6 @@ import { connectToDB } from "./config/db.js";
 import { configDotenv } from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-// import { Server } from "socket.io";
 configDotenv();
 const PORT = process.env.PORT || 5000;
 
@@ -27,14 +26,8 @@ app.use("/api/product", productRoutes);
 app.use("/api/chat", chatRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
-
-// export const io = new Server(expressServer, {
-//   cors: {
-//     origin: "*", // Adjust this to match your front-end origin
-//   },
-// });
 
 const users: Record<string, string> = {}; // Store userId -> socketId mapping
 
