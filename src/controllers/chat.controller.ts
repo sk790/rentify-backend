@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
-
+import { SOCKET_SERVER_URL } from "../index.js";
 interface AuthenticateRequest extends Request {
   user?: any;
 }
 export const sendMessage = async (req: Request, res: Response) => {
+  console.log("calling send message");
   try {
     const { senderId, receiverId, text } = req.body;
     // const sender = await User.findById(senderId);
@@ -14,12 +15,16 @@ export const sendMessage = async (req: Request, res: Response) => {
       sender: senderId,
       receiver: receiverId,
       text,
+      status: "sent",
     });
     await message.save();
+
     res.status(201).json({ msg: "Message sent successfully!", message });
     return;
   } catch (error) {
     res.status(500).json({ msg: "Internal Server error", error });
+    console.log(error);
+    return;
   }
 };
 
@@ -60,8 +65,7 @@ export const getConversations = async (
       users.add(msg.sender.toString());
       users.add(msg.receiver.toString());
     });
-
-    // users.delete(userId); // Remove self from conversations
+    users.delete(userId.toString()); // Remove current user from the set
     const conversations = await User.find({ _id: { $in: Array.from(users) } });
     res.status(200).json(conversations);
     return;
@@ -72,3 +76,38 @@ export const getConversations = async (
     return;
   }
 };
+
+export const updateStatus = async (req: Request, res: Response) => {
+  const { status } = req.body;
+  console.log("calling update status", status);
+
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      res.status(404).json({ msg: "Message not found" });
+      return;
+    }
+    await message.updateOne({ status });
+    res.status(200).json({ msg: "Message status updated" });
+    return;
+  } catch (error) {}
+};
+
+// export const getUndeliveredMessages = async (
+//   req: AuthenticateRequest,
+//   res: Response
+// ) => {
+//   // Implementation to fetch undelivered messages from your database
+//   console.log("calling get undelivered messages");
+//   try {
+//     const messages = await Message.find({
+//       status: "sent",
+//       sender: req.user._id,
+//       receiver: req.params.receiverId,
+//     });
+//     res.status(200).json({ messages });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };

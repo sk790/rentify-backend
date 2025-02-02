@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
 export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("calling send message");
     try {
         const { senderId, receiverId, text } = req.body;
         // const sender = await User.findById(senderId);
@@ -17,6 +18,7 @@ export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
             sender: senderId,
             receiver: receiverId,
             text,
+            status: "sent",
         });
         yield message.save();
         res.status(201).json({ msg: "Message sent successfully!", message });
@@ -24,6 +26,8 @@ export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         res.status(500).json({ msg: "Internal Server error", error });
+        console.log(error);
+        return;
     }
 });
 export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -59,7 +63,7 @@ export const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, 
             users.add(msg.sender.toString());
             users.add(msg.receiver.toString());
         });
-        // users.delete(userId); // Remove self from conversations
+        users.delete(userId.toString()); // Remove current user from the set
         const conversations = yield User.find({ _id: { $in: Array.from(users) } });
         res.status(200).json(conversations);
         return;
@@ -71,3 +75,36 @@ export const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, 
         return;
     }
 });
+export const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { status } = req.body;
+    console.log("calling update status", status);
+    try {
+        const message = yield Message.findById(req.params.messageId);
+        if (!message) {
+            res.status(404).json({ msg: "Message not found" });
+            return;
+        }
+        yield message.updateOne({ status });
+        res.status(200).json({ msg: "Message status updated" });
+        return;
+    }
+    catch (error) { }
+});
+// export const getUndeliveredMessages = async (
+//   req: AuthenticateRequest,
+//   res: Response
+// ) => {
+//   // Implementation to fetch undelivered messages from your database
+//   console.log("calling get undelivered messages");
+//   try {
+//     const messages = await Message.find({
+//       status: "sent",
+//       sender: req.user._id,
+//       receiver: req.params.receiverId,
+//     });
+//     res.status(200).json({ messages });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };

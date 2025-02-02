@@ -15,8 +15,8 @@ const messageSchema = new mongoose.Schema(
     text: { type: String, required: true },
     status: {
       type: String,
-      enum: ["sent", "delivered", "read"],
-      default: "sent",
+      enum: ["sent", "delivered", "read", "pending"],
+      default: "pending",
     },
     deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Users who deleted this message
   },

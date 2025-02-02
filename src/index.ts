@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { connectToDB } from "./config/db.js";
 import { configDotenv } from "dotenv";
 import cookieParser from "cookie-parser";
@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 5000;
 import authRouter from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+export const SOCKET_SERVER_URL = "http://localhost:4001";
 
 const app = express();
 
@@ -33,4 +34,3 @@ if (process.env.NODE_ENV === "development") {
     console.log(`Server is running on port ${PORT}`);
   });
 }
-export default app;

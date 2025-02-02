@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { privateDecrypt } from "crypto";
+import { SOCKET_SERVER_URL } from "../index.js";
 
 interface AuthenticateRequest extends Request {
   user?: any;
@@ -110,7 +111,7 @@ export const getMyProfile = async (
       res.status(404).json({ msg: "user not found" });
       return;
     }
-
+    // await fetch(`${SOCKET_SERVER_URL}/getOnlineUsers`);
     res.status(200).json({ user });
     return;
   } catch (error) {
