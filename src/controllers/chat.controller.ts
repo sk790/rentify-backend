@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
-import { SOCKET_SERVER_URL } from "../index.js";
 interface AuthenticateRequest extends Request {
   user?: any;
 }
@@ -55,7 +54,7 @@ export const getMessages = async (req: AuthenticateRequest, res: Response) => {
 
     // Update unread messages in DB
     if (unreadMessages.length > 0) {
-      const updateResult = await Message.updateMany(
+      await Message.updateMany(
         { _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
         { $set: { status: "read" } }
       );

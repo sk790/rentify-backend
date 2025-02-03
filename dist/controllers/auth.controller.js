@@ -97,7 +97,6 @@ export const getMyProfile = (req, res) => __awaiter(void 0, void 0, void 0, func
             res.status(404).json({ msg: "user not found" });
             return;
         }
-        // await fetch(`${SOCKET_SERVER_URL}/getOnlineUsers`);
         res.status(200).json({ user });
         return;
     }

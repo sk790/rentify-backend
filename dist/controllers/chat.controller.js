@@ -52,7 +52,7 @@ export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
         // Update unread messages in DB
         if (unreadMessages.length > 0) {
-            const updateResult = yield Message.updateMany({ _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
+            yield Message.updateMany({ _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
             { $set: { status: "read" } });
         }
         res.status(200).json({ messages });
