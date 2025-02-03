@@ -161,3 +161,14 @@ export const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, fun
         return;
     }
 });
+export const updateLastSeen = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield User.findOneAndUpdate({ _id: req.user._id }, { lastSeen: Date.now() });
+        res.status(200).json({ msg: "Last seen updated" });
+        return;
+    }
+    catch (error) {
+        res.status(500).json({ msg: "Internal Server error", error });
+        return;
+    }
+});

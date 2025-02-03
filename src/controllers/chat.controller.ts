@@ -29,9 +29,10 @@ export const sendMessage = async (req: Request, res: Response) => {
 };
 
 export const getMessages = async (req: AuthenticateRequest, res: Response) => {
-  console.log("calling get messages");
+  console.log("Calling get messages...");
   const { chatUserId } = req.params;
   const userId = req.user._id;
+
   try {
     const messages = await Message.find({
       $or: [
@@ -39,13 +40,33 @@ export const getMessages = async (req: AuthenticateRequest, res: Response) => {
         { sender: chatUserId, receiver: userId },
       ],
     }).sort({ createdAt: 1 });
+
+    // Collect unread message IDs
+    const unreadMessages: string[] = [];
+    messages.forEach((message: any) => {
+      if (
+        message.status !== "read" &&
+        message.sender.toString() === chatUserId
+      ) {
+        message.status = "read"; // Update locally
+        unreadMessages.push(message._id); // Store unread message IDs
+      }
+    });
+
+    // Update unread messages in DB
+    if (unreadMessages.length > 0) {
+      const updateResult = await Message.updateMany(
+        { _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
+        { $set: { status: "read" } }
+      );
+    }
+
     res.status(200).json({ messages });
-    return;
   } catch (error) {
+    console.error("Error fetching messages:", error);
     res
       .status(500)
-      .json({ msg: "Internal Server error", error: error.message });
-    return;
+      .json({ msg: "Internal Server Error", error: error.message });
   }
 };
 
@@ -65,7 +86,7 @@ export const getConversations = async (
       users.add(msg.sender.toString());
       users.add(msg.receiver.toString());
     });
-    users.delete(userId.toString()); // Remove current user from the set
+    // users.delete(userId.toString()); // Remove current user from the set
     const conversations = await User.find({ _id: { $in: Array.from(users) } });
     res.status(200).json(conversations);
     return;
@@ -80,7 +101,6 @@ export const getConversations = async (
 export const updateStatus = async (req: Request, res: Response) => {
   const { status } = req.body;
   console.log("calling update status", status);
-
   try {
     const message = await Message.findById(req.params.messageId);
     if (!message) {
@@ -92,22 +112,3 @@ export const updateStatus = async (req: Request, res: Response) => {
     return;
   } catch (error) {}
 };
-
-// export const getUndeliveredMessages = async (
-//   req: AuthenticateRequest,
-//   res: Response
-// ) => {
-//   // Implementation to fetch undelivered messages from your database
-//   console.log("calling get undelivered messages");
-//   try {
-//     const messages = await Message.find({
-//       status: "sent",
-//       sender: req.user._id,
-//       receiver: req.params.receiverId,
-//     });
-//     res.status(200).json({ messages });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };

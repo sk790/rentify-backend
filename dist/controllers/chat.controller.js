@@ -31,7 +31,7 @@ export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("calling get messages");
+    console.log("Calling get messages...");
     const { chatUserId } = req.params;
     const userId = req.user._id;
     try {
@@ -41,14 +41,27 @@ export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 { sender: chatUserId, receiver: userId },
             ],
         }).sort({ createdAt: 1 });
+        // Collect unread message IDs
+        const unreadMessages = [];
+        messages.forEach((message) => {
+            if (message.status !== "read" &&
+                message.sender.toString() === chatUserId) {
+                message.status = "read"; // Update locally
+                unreadMessages.push(message._id); // Store unread message IDs
+            }
+        });
+        // Update unread messages in DB
+        if (unreadMessages.length > 0) {
+            const updateResult = yield Message.updateMany({ _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
+            { $set: { status: "read" } });
+        }
         res.status(200).json({ messages });
-        return;
     }
     catch (error) {
+        console.error("Error fetching messages:", error);
         res
             .status(500)
-            .json({ msg: "Internal Server error", error: error.message });
-        return;
+            .json({ msg: "Internal Server Error", error: error.message });
     }
 });
 export const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -63,7 +76,7 @@ export const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, 
             users.add(msg.sender.toString());
             users.add(msg.receiver.toString());
         });
-        users.delete(userId.toString()); // Remove current user from the set
+        // users.delete(userId.toString()); // Remove current user from the set
         const conversations = yield User.find({ _id: { $in: Array.from(users) } });
         res.status(200).json(conversations);
         return;
@@ -90,21 +103,3 @@ export const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
     catch (error) { }
 });
-// export const getUndeliveredMessages = async (
-//   req: AuthenticateRequest,
-//   res: Response
-// ) => {
-//   // Implementation to fetch undelivered messages from your database
-//   console.log("calling get undelivered messages");
-//   try {
-//     const messages = await Message.find({
-//       status: "sent",
-//       sender: req.user._id,
-//       receiver: req.params.receiverId,
-//     });
-//     res.status(200).json({ messages });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };

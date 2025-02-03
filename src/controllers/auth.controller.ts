@@ -176,3 +176,20 @@ export const updateProfile = async (
     return;
   }
 };
+
+export const updateLastSeen = async (
+  req: AuthenticateRequest,
+  res: Response
+) => {
+  try {
+    await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { lastSeen: Date.now() }
+    );
+    res.status(200).json({ msg: "Last seen updated" });
+    return;
+  } catch (error) {
+    res.status(500).json({ msg: "Internal Server error", error });
+    return;
+  }
+};

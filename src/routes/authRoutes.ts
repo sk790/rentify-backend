@@ -7,6 +7,7 @@ import {
   getUserDetails,
   updateAvatar,
   updateProfile,
+  updateLastSeen,
 } from "../controllers/auth.controller.js";
 import { authorizationRole, verify } from "../middlewares/verify.js";
 
@@ -19,5 +20,6 @@ router.route("/logout").get(verify, logOut);
 router.route("/:userId").get(getUserDetails);
 router.route("/avatar").put(verify, updateAvatar);
 router.route("/update-profile").put(verify, updateProfile);
+router.route("/update-last-seen").put(verify, updateLastSeen);
 
 export default router;

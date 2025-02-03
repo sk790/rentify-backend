@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema({
         { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
     ],
     isBlocked: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: Date.now },
 });
 const User = mongoose.model("User", userSchema);
 export default User;

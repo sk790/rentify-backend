@@ -1,5 +1,5 @@
 import express from "express";
-import { login, signUp, logOut, getMyProfile, getUserDetails, updateAvatar, updateProfile, } from "../controllers/auth.controller.js";
+import { login, signUp, logOut, getMyProfile, getUserDetails, updateAvatar, updateProfile, updateLastSeen, } from "../controllers/auth.controller.js";
 import { verify } from "../middlewares/verify.js";
 const router = express.Router();
 router.route("/login").post(login);
@@ -9,4 +9,5 @@ router.route("/logout").get(verify, logOut);
 router.route("/:userId").get(getUserDetails);
 router.route("/avatar").put(verify, updateAvatar);
 router.route("/update-profile").put(verify, updateProfile);
+router.route("/update-last-seen").put(verify, updateLastSeen);
 export default router;
