@@ -21,8 +21,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/product", productRoutes);
 app.use("/api/chat", chatRoutes);
 // Ensure Vercel serverless functions return the Express app
-if (process.env.NODE_ENV === "development") {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    });
-}
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
