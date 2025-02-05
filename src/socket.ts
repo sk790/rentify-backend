@@ -16,6 +16,7 @@ const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
   },
+  transports: ["websocket"], // Force WebSocket transport
 });
 const users: Record<string, string> = {}; // Stores userId -> socketId mapping
 
@@ -29,6 +30,8 @@ io.on("connection", (socket: Socket) => {
   }
 
   socket.on("sendMessage", async (message: Message) => {
+    console.log("Received message:", message);
+
     const receiverSocketId = users[message.receiver];
     const senderSocketId = users[message.sender];
 

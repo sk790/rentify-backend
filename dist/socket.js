@@ -17,6 +17,7 @@ const io = new Server(server, {
         origin: "*",
         methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
     },
+    transports: ["websocket"], // Force WebSocket transport
 });
 const users = {}; // Stores userId -> socketId mapping
 io.on("connection", (socket) => {
@@ -27,6 +28,7 @@ io.on("connection", (socket) => {
         io.emit("getOnlineUsers", Object.keys(users));
     }
     socket.on("sendMessage", (message) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log("Received message:", message);
         const receiverSocketId = users[message.receiver];
         const senderSocketId = users[message.sender];
         if (receiverSocketId) {
