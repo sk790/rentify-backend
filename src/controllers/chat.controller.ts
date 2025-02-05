@@ -5,7 +5,7 @@ interface AuthenticateRequest extends Request {
   user?: any;
 }
 export const sendMessage = async (req: Request, res: Response) => {
-  console.log("calling send message");
+  // console.log("calling send message");
   try {
     const { senderId, receiverId, text } = req.body;
     // const sender = await User.findById(senderId);
@@ -55,7 +55,7 @@ export const getMessages = async (req: AuthenticateRequest, res: Response) => {
     // Update unread messages in DB
     if (unreadMessages.length > 0) {
       await Message.updateMany(
-        { _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
+        { _id: { $in: unreadMessages }, status: "delivered" }, // Fixing the condition
         { $set: { status: "read" } }
       );
     }
@@ -95,19 +95,4 @@ export const getConversations = async (
       .json({ msg: "Internal Server error", error: error.message });
     return;
   }
-};
-
-export const updateStatus = async (req: Request, res: Response) => {
-  const { status } = req.body;
-  console.log("calling update status", status);
-  try {
-    const message = await Message.findById(req.params.messageId);
-    if (!message) {
-      res.status(404).json({ msg: "Message not found" });
-      return;
-    }
-    await message.updateOne({ status });
-    res.status(200).json({ msg: "Message status updated" });
-    return;
-  } catch (error) {}
 };

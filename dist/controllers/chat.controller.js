@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import User from "../models/user.model.js";
 import { Message } from "../models/chat.Model.js";
 export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("calling send message");
+    // console.log("calling send message");
     try {
         const { senderId, receiverId, text } = req.body;
         // const sender = await User.findById(senderId);
@@ -52,7 +52,7 @@ export const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
         // Update unread messages in DB
         if (unreadMessages.length > 0) {
-            yield Message.updateMany({ _id: { $in: unreadMessages }, status: "sent" }, // Fixing the condition
+            yield Message.updateMany({ _id: { $in: unreadMessages }, status: "delivered" }, // Fixing the condition
             { $set: { status: "read" } });
         }
         res.status(200).json({ messages });
@@ -87,19 +87,4 @@ export const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, 
             .json({ msg: "Internal Server error", error: error.message });
         return;
     }
-});
-export const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { status } = req.body;
-    console.log("calling update status", status);
-    try {
-        const message = yield Message.findById(req.params.messageId);
-        if (!message) {
-            res.status(404).json({ msg: "Message not found" });
-            return;
-        }
-        yield message.updateOne({ status });
-        res.status(200).json({ msg: "Message status updated" });
-        return;
-    }
-    catch (error) { }
 });
