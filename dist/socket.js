@@ -18,6 +18,7 @@ const io = new Server(server, {
         origin: "*",
         methods: ["GET", "POST", "DELETE", "UPDATE", "PUT"],
     },
+    transports: ["polling"], // Ensure polling is enabled
 });
 const users = {}; // Stores userId -> socketId mapping
 io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {

@@ -17,6 +17,7 @@ const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST", "DELETE", "UPDATE", "PUT"],
   },
+  transports: ["polling"], // Ensure polling is enabled
 });
 const users: Record<string, string> = {}; // Stores userId -> socketId mapping
 
